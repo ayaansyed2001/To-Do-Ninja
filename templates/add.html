@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Task{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="{% url 'add_task' %}" method="POST">
+            {% csrf_token %}
+            <label for="title" >Task Title</label>
+            <input type="text" id="title" name="title" class="form-control mb-2" placeholder="Add a new task..." required minlength="2">
+            <label for="description" >Task Description</label>
+            <textarea id="description" name="description" class="form-control mb-2" placeholder="Add a description..." required minlength="5"></textarea>
+            <button type="submit" class="btn btn-info">
+                <i class="fas fa-plus"></i> Add Task
+            </button>
+        </form>
+        {% if error %}
+        <div class="text-danger mt-2">{{ error }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Tasks
+    </a>
+</div>
+{% endblock %}

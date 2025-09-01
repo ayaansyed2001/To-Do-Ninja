@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Task{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="title" class="form-control mb-2"  value="{{ tasks.title }}" required minlength="2" required>
+            <textarea name="description" class="form-control mb-2" required minlength="5" required>{{ tasks.description }}</textarea>
+            <button type="submit" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Update Task
+            </button>
+        </form>
+        {% if error %}
+        <div class="text-danger mt-2">{{ error }}</div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Tasks
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - To-Do App{% endblock %}
+
+{% block content %}
+<!-- Add Task Button -->
+<div class="mb-4 text-end">
+    <a href="{% url 'add_task' %}" class="btn btn-info">
+        <i class="fas fa-plus"></i> Add New Task
+    </a>
+</div>
+{% csrf_token %}
+<!-- Task Filters and Counter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="btn-group" role="group" aria-label="Task filters">
+                    <button type="button" class="btn btn-outline-secondary {% if filter == 'all' %}active{% endif %}" onclick="window.location.href='?filter=all'">
+                        All ({{ tasks|length }})
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary {% if filter == 'active' %}active{% endif %}" onclick="window.location.href='?filter=active'">
+                        Active ({{ active_tasks|length }})
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary {% if filter == 'completed' %}active{% endif %}" onclick="window.location.href='?filter=completed'">
+                        Completed ({{ completed_tasks|length }})
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <a href="{% url 'clear_completed' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-trash"></i> Clear Completed
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task List -->
+<div class="card">
+    <div class="card-body">
+        {% if tasks %}
+            {% for task in tasks %}
+                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                    <div>
+                        {% if task.completed %}
+                            <s>{{ task.title }}</s>
+                        {% else %}
+                            {{ task.title }} <br>
+                            <small class="text-muted">{{ task.description }}</small>
+                            <br>
+                            <br>
+    
+                            <small class="text-muted" color="#6c757d">Created At : {{task.created_at|date:"M ,d Y H:i"}}</small>
+                        <br>
+                        
+                        {% if task.updated_at != task.created_at %}
+                            <small class="text-muted" color="#6c757d">Updated At : {{task.updated_at|date:"M ,d Y H:i"}}</small>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'toggle_complete' task.id %}" class="btn btn-sm btn-success">
+                            {% if task.completed %}Undo{% else %}Complete{% endif %}
+                        </a>
+                        <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-clipboard-list fa-3x mb-3 opacity-50"></i>
+                <h5>No tasks yet</h5>
+                <p>Add your first task above to get started!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
