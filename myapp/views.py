@@ -92,61 +92,51 @@ def delete_task(request, task_id):
     return render(request, 'delete.html', context)
 
 
-from django.views.decorators.csrf import csrf_protect
-
-@csrf_protect
 def loginu(request):
     if request.method == "POST":
         uname = request.POST.get("username")
         password = request.POST.get("password")
 
-        if not uname or not password:
-            return render(request, "login.html", {"error": "Please enter username and password."})
+        try:
+            user = User.objects.get(username=uname)
+        except User.DoesNotExist:
+            return render(request, "login.html", {"error": "User not found. Please try again."})
 
         user = authenticate(request, username=uname, password=password)
         if user is not None:
             login(request, user)
             return redirect('home')
         else:
-            return render(request, "login.html", {"error": "Invalid username or password."})
+            return render(request, "login.html", {"error": "Invalid password. Please try again."})
     
     return render(request, 'login.html')
 
 
-
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.db import IntegrityError
-
 def signup(request):
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
-        email = request.POST.get("email", "").strip()
-        password1 = request.POST.get("password1", "")
-        password2 = request.POST.get("password2", "")
-
-        # Check for empty fields
-        if not username or not email or not password1 or not password2:
-            messages.error(request, "All fields are required.")
-            return render(request, "signup.html")
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password1 = request.POST.get("password1")
+        password2 = request.POST.get("password2")
 
         # Password check
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
             return render(request, "signup.html")
 
-        # Try to create user safely
-        try:
-            user = User.objects.create_user(username=username, email=email, password=password1)
-            user.save()
-        except IntegrityError:
-            messages.error(request, "Username or email already exists.")
-            return render(request, "signup.html")
-        except Exception as e:
-            messages.error(request, f"An unexpected error occurred: {str(e)}")
+        # Username check
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
             return render(request, "signup.html")
 
+        # Email check
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already exists.")
+            return render(request, "signup.html")
+
+        # Create user
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        user.save()
         messages.success(request, "Account created successfully. You can now log in.")
         return redirect("login")
 
