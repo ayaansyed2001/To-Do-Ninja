@@ -114,31 +114,39 @@ def loginu(request):
 
 
 
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.db import IntegrityError
+
 def signup(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password1 = request.POST.get("password1")
-        password2 = request.POST.get("password2")
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password1 = request.POST.get("password1", "")
+        password2 = request.POST.get("password2", "")
+
+        # Check for empty fields
+        if not username or not email or not password1 or not password2:
+            messages.error(request, "All fields are required.")
+            return render(request, "signup.html")
 
         # Password check
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
             return render(request, "signup.html")
 
-        # Username check
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
+        # Try to create user safely
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password1)
+            user.save()
+        except IntegrityError:
+            messages.error(request, "Username or email already exists.")
+            return render(request, "signup.html")
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {str(e)}")
             return render(request, "signup.html")
 
-        # Email check
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already exists.")
-            return render(request, "signup.html")
-
-        # Create user
-        user = User.objects.create_user(username=username, email=email, password=password1)
-        user.save()
         messages.success(request, "Account created successfully. You can now log in.")
         return redirect("login")
 
