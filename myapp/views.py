@@ -92,24 +92,26 @@ def delete_task(request, task_id):
     return render(request, 'delete.html', context)
 
 
+from django.views.decorators.csrf import csrf_protect
+
+@csrf_protect
 def loginu(request):
     if request.method == "POST":
         uname = request.POST.get("username")
         password = request.POST.get("password")
 
-        try:
-            user = User.objects.get(username=uname)
-        except User.DoesNotExist:
-            return render(request, "login.html", {"error": "User not found. Please try again."})
+        if not uname or not password:
+            return render(request, "login.html", {"error": "Please enter username and password."})
 
         user = authenticate(request, username=uname, password=password)
         if user is not None:
             login(request, user)
             return redirect('home')
         else:
-            return render(request, "login.html", {"error": "Invalid password. Please try again."})
+            return render(request, "login.html", {"error": "Invalid username or password."})
     
     return render(request, 'login.html')
+
 
 
 def signup(request):
