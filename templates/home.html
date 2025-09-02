@@ -1,84 +1,296 @@
+
 {% extends 'base.html' %}
 
 {% block title %}Home - To-Do App{% endblock %}
 
 {% block content %}
-<!-- Add Task Button -->
-<div class="mb-4 text-end">
-    <a href="{% url 'add_task' %}" class="btn btn-info">
-        <i class="fas fa-plus"></i> Add New Task
-    </a>
-</div>
-{% csrf_token %}
-<!-- Task Filters and Counter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="btn-group" role="group" aria-label="Task filters">
-                    <button type="button" class="btn btn-outline-secondary {% if filter == 'all' %}active{% endif %}" onclick="window.location.href='?filter=all'">
-                        All ({{ tasks|length }})
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary {% if filter == 'active' %}active{% endif %}" onclick="window.location.href='?filter=active'">
-                        Active ({{ active_tasks|length }})
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary {% if filter == 'completed' %}active{% endif %}" onclick="window.location.href='?filter=completed'">
-                        Completed ({{ completed_tasks|length }})
-                    </button>
+<!-- Quick Add Task Section -->
+<div class="quick-add-section mb-5">
+    <div class="card border-0 shadow-sm bg-gradient-card">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-plus-circle text-info me-2"></i>Quick Add Task
+                    </h5>
+                    <p class="text-muted small mb-0">Create a new task to stay organized</p>
                 </div>
-            </div>
-            <div class="col-md-6 text-md-end mt-3 mt-md-0">
-                <a href="{% url 'clear_completed' %}" class="btn btn-outline-danger">
-                    <i class="fas fa-trash"></i> Clear Completed
-                </a>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="{% url 'add_task' %}" class="btn btn-info btn-lg btn-hover-effect w-100 w-md-auto">
+                        <i class="fas fa-plus me-2"></i>Add New Task
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Task List -->
-<div class="card">
-    <div class="card-body">
-        {% if tasks %}
-            {% for task in tasks %}
-                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
-                    <div>
-                        {% if task.completed %}
-                            <s>{{ task.title }}</s>
-                        {% else %}
-                            {{ task.title }} <br>
-                            <small class="text-muted">{{ task.description }}</small>
-                            <br>
-                            <br>
-    
-                            <small class="text-muted" color="#6c757d">Created At : {{task.created_at|date:"M ,d Y H:i"}}</small>
-                        <br>
-                        
-                        {% if task.updated_at != task.created_at %}
-                            <small class="text-muted" color="#6c757d">Updated At : {{task.updated_at|date:"M ,d Y H:i"}}</small>
-                        {% endif %}
-                        {% endif %}
+{% csrf_token %}
+
+<!-- Enhanced Task Filters and Stats -->
+<div class="filters-section mb-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="row align-items-center g-3">
+                <!-- Filter Buttons -->
+                <div class="col-lg-8">
+                    <div class="d-flex flex-wrap gap-2">
+                        <div class="btn-group filter-group" role="group" aria-label="Task filters">
+                            <button type="button" 
+                                    class="btn btn-outline-info filter-btn {% if filter == 'all' %}active{% endif %}" 
+                                    onclick="filterTasks('all')"
+                                    data-bs-toggle="tooltip" 
+                                    title="Show all tasks">
+                                <i class="fas fa-list me-2"></i>All
+                                <span class="badge bg-info ms-2">{{ tasks|length }}</span>
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-outline-warning filter-btn {% if filter == 'active' %}active{% endif %}" 
+                                    onclick="filterTasks('active')"
+                                    data-bs-toggle="tooltip" 
+                                    title="Show active tasks">
+                                <i class="fas fa-play me-2"></i>Active
+                                <span class="badge bg-warning ms-2">{{ active_tasks|length }}</span>
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-outline-success filter-btn {% if filter == 'completed' %}active{% endif %}" 
+                                    onclick="filterTasks('completed')"
+                                    data-bs-toggle="tooltip" 
+                                    title="Show completed tasks">
+                                <i class="fas fa-check me-2"></i>Completed
+                                <span class="badge bg-success ms-2">{{ completed_tasks|length }}</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="{% url 'toggle_complete' task.id %}" class="btn btn-sm btn-success">
-                            {% if task.completed %}Undo{% else %}Complete{% endif %}
-                        </a>
-                        <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-warning">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-danger">
-                            <i class="fas fa-trash"></i>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="col-lg-4">
+                    <div class="d-flex gap-2 justify-content-lg-end">
+                        <a href="{% url 'clear_completed' %}" 
+                           class="btn btn-outline-danger btn-action {% if not completed_tasks %}disabled{% endif %}"
+                           data-bs-toggle="tooltip" 
+                           title="Clear all completed tasks">
+                            <i class="fas fa-trash me-2"></i>
+                            <span class="d-none d-sm-inline">Clear Completed</span>
                         </a>
                     </div>
                 </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-5 text-muted">
-                <i class="fas fa-clipboard-list fa-3x mb-3 opacity-50"></i>
-                <h5>No tasks yet</h5>
-                <p>Add your first task above to get started!</p>
             </div>
-        {% endif %}
+        </div>
     </div>
 </div>
+
+<!-- Enhanced Task List -->
+<div class="tasks-section">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 p-4 pb-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-clipboard-list text-info me-2"></i>Your Tasks
+                </h5>
+                {% if tasks %}
+                <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>Last updated: now
+                </small>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card-body p-4">
+            {% if tasks %}
+                <div class="task-grid">
+                    {% for task in tasks %}
+                        <div class="task-card {% if task.completed %}task-completed{% endif %}" data-task-id="{{ task.id }}">
+                            <div class="task-content">
+                                <!-- Task Header -->
+                                <div class="task-header d-flex align-items-start justify-content-between mb-3">
+                                    <div class="task-info flex-grow-1">
+                                        <h6 class="task-title mb-2 {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+                                            {{ task.title }}
+                                        </h6>
+                                        {% if not task.completed and task.description %}
+                                        <p class="task-description text-muted small mb-0">{{ task.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Status Badge -->
+                                    <div class="task-status">
+                                        {% if task.completed %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Completed
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Pending
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Task Meta -->
+                                <div class="task-meta mb-3">
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6">
+                                            <small class="text-muted d-flex align-items-center">
+                                                <i class="fas fa-calendar-plus me-2"></i>
+                                                Created: {{ task.created_at|date:"M d, Y H:i" }}
+                                            </small>
+                                        </div>
+                                        {% if task.updated_at != task.created_at %}
+                                        <div class="col-12 col-md-6">
+                                            <small class="text-muted d-flex align-items-center">
+                                                <i class="fas fa-calendar-edit me-2"></i>
+                                                Updated: {{ task.updated_at|date:"M d, Y H:i" }}
+                                            </small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Task Actions -->
+                                <div class="task-actions d-flex gap-2 justify-content-end">
+                                    <a href="{% url 'toggle_complete' task.id %}" 
+                                       class="btn btn-sm {% if task.completed %}btn-outline-warning{% else %}btn-outline-success{% endif %} btn-action-hover"
+                                       data-bs-toggle="tooltip" 
+                                       title="{% if task.completed %}Mark as pending{% else %}Mark as completed{% endif %}">
+                                        {% if task.completed %}
+                                        <i class="fas fa-undo me-1"></i>
+                                        <span class="d-none d-sm-inline">Undo</span>
+                                        {% else %}
+                                        <i class="fas fa-check me-1"></i>
+                                        <span class="d-none d-sm-inline">Complete</span>
+                                        {% endif %}
+                                    </a>
+                                    
+                                    <a href="{% url 'edit_task' task.id %}" 
+                                       class="btn btn-sm btn-outline-info btn-action-hover"
+                                       data-bs-toggle="tooltip" 
+                                       title="Edit task">
+                                        <i class="fas fa-edit me-1"></i>
+                                        <span class="d-none d-sm-inline">Edit</span>
+                                    </a>
+                                    
+                                    <a href="{% url 'delete_task' task.id %}" 
+                                       class="btn btn-sm btn-outline-danger btn-action-hover"
+                                       data-bs-toggle="tooltip" 
+                                       title="Delete task">
+                                        <i class="fas fa-trash me-1"></i>
+                                        <span class="d-none d-sm-inline">Delete</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <!-- Enhanced Empty State -->
+                <div class="empty-state text-center py-5">
+                    <div class="empty-icon mb-4">
+                        <i class="fas fa-clipboard-list fa-4x text-info opacity-50 icon-pulse"></i>
+                    </div>
+                    <h4 class="mb-3">No tasks yet</h4>
+                    <p class="text-muted mb-4">Ready to boost your productivity? Add your first task above!</p>
+                    <a href="{% url 'add_task' %}" class="btn btn-info btn-lg btn-hover-effect">
+                        <i class="fas fa-plus me-2"></i>Create Your First Task
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bar (if tasks exist) -->
+{% if tasks %}
+<div class="progress-section mt-4">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line text-info me-2"></i>Progress Overview
+                </h6>
+                <span class="text-muted">
+                    {{ completed_tasks|length }} of {{ tasks|length }} completed
+                </span>
+            </div>
+            {% with progress_percentage=completed_tasks|length|floatformat:0 total_tasks=tasks|length|floatformat:0 %}
+            {% widthratio completed_tasks|length tasks|length 100 as progress %}
+            <div class="progress progress-animated" style="height: 10px;">
+                <div class="progress-bar bg-gradient progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     style="width: {{ progress }}%"
+                     aria-valuenow="{{ progress }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-4 text-center">
+                    <div class="stat-item">
+                        <h4 class="text-info mb-0">{{ tasks|length }}</h4>
+                        <small class="text-muted">Total</small>
+                    </div>
+                </div>
+                <div class="col-4 text-center">
+                    <div class="stat-item">
+                        <h4 class="text-warning mb-0">{{ active_tasks|length }}</h4>
+                        <small class="text-muted">Active</small>
+                    </div>
+                </div>
+                <div class="col-4 text-center">
+                    <div class="stat-item">
+                        <h4 class="text-success mb-0">{{ completed_tasks|length }}</h4>
+                        <small class="text-muted">Done</small>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Back to Top Button -->
+<button id="backToTop" class="btn btn-info btn-floating">
+    <i class="fas fa-chevron-up"></i>
+</button>
+
+<script>
+// Enhanced JavaScript for interactivity
+function filterTasks(filter) {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    setTimeout(() => {
+        window.location.href = `?filter=${filter}`;
+    }, 300);
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Back to top button
+    const backToTopBtn = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('show');
+        } else {
+            backToTopBtn.classList.remove('show');
+        }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Hide loading overlay
+    document.getElementById('loadingOverlay').style.display = 'none';
+});
+</script>
 {% endblock %}
