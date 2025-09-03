@@ -20,11 +20,16 @@ def home(request):
         elif filter_value == 'completed':
             tasks = completed_tasks
             
+                # Calculate progress percentage
+        total_tasks = tasks.count()
+        completed_count = completed_tasks.count()
+        progress = (completed_count / total_tasks * 100) if total_tasks > 0 else 0
         context = {
         'tasks': tasks,
         'active_tasks': active_tasks,
         'completed_tasks': completed_tasks,
-        'filter': filter_value
+        'filter': filter_value,
+        'progress': round(progress, 1)
     }
     else:
         # For anonymous users, show empty lists or redirect to login

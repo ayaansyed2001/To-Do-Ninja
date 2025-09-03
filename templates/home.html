@@ -149,7 +149,7 @@
                                 </div>
 
                                 <!-- Task Actions -->
-                                <div class="task-actions d-flex gap-2 justify-content-end">
+                                <div class="task-actions d-flex gap-2 justify-content-between">
                                     <a href="{% url 'toggle_complete' task.id %}" 
                                        class="btn btn-sm {% if task.completed %}btn-outline-warning{% else %}btn-outline-success{% endif %} btn-action-hover"
                                        data-bs-toggle="tooltip" 
@@ -161,7 +161,7 @@
                                         <i class="fas fa-check me-1"></i>
                                         <span class="d-none d-sm-inline">Complete</span>
                                         {% endif %}
-                                    </a>
+                                    </a> 
                                     
                                     <a href="{% url 'edit_task' task.id %}" 
                                        class="btn btn-sm btn-outline-info btn-action-hover"
@@ -218,7 +218,7 @@
             <div class="progress progress-animated" style="height: 10px;">
                 <div class="progress-bar bg-gradient progress-bar-striped progress-bar-animated" 
                      role="progressbar" 
-                     style="width: {{ progress }}%"
+                     style="width: 0"
                      aria-valuenow="{{ progress }}" 
                      aria-valuemin="0" 
                      aria-valuemax="100">

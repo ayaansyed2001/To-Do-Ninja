@@ -838,3 +838,4 @@ if ('performance' in window) {
         }, 0);
     });
 }
+
